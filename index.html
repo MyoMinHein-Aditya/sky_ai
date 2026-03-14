@@ -1,0 +1,161 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SKY TERMINAL</title>
+<style>
+    :root { 
+        --glow: #ff003c; /* Cyber Red/Neon Pink */
+        --bg: #050001;   /* Pure Void Black */
+        --text: #ffe0e6; /* Soft Rose text for readability */
+    }
+    
+    body { 
+        background: var(--bg); 
+        color: var(--text); 
+        font-family: 'Courier New', Courier, monospace; 
+        margin: 0; display: flex; justify-content: center; 
+        align-items: center; height: 100vh; overflow: hidden;
+    }
+
+    .terminal { 
+        width: 85%; max-width: 900px; height: 85vh; 
+        border: 1px solid var(--glow); 
+        background: rgba(5, 0, 1, 0.98); 
+        display: flex; flex-direction: column; 
+        /* Aggressive Red Shadow */
+        box-shadow: 0 0 40px rgba(255, 0, 60, 0.15), inset 0 0 20px rgba(255, 0, 60, 0.05); 
+        border-radius: 4px; /* Sharper corners for a "tactical" look */
+    }
+
+    header { 
+        padding: 15px; border-bottom: 2px solid var(--glow); 
+        text-align: center; font-weight: 900; letter-spacing: 10px; color: var(--glow);
+        text-transform: uppercase; font-size: 1rem;
+        text-shadow: 0 0 15px var(--glow);
+    }
+
+    #chat-log { 
+        flex-grow: 1; padding: 25px; overflow-y: auto; 
+        display: flex; flex-direction: column; gap: 15px;
+        scrollbar-width: thin; scrollbar-color: var(--glow) transparent;
+    }
+
+    .msg { padding: 12px 18px; border-radius: 2px; max-width: 80%; line-height: 1.6; white-space: pre-wrap; font-size: 0.95rem; }
+    
+    /* User messages get a clean white accent */
+    .user { align-self: flex-end; color: #fff; border-right: 3px solid #fff; background: rgba(255,255,255,0.05); }
+    
+    /* SKY messages in Hazard Red */
+    .sky { align-self: flex-start; color: var(--glow); border-left: 3px solid var(--glow); background: rgba(255, 0, 60, 0.05); }
+    
+    @keyframes pulse { 0% { opacity: 0.2; } 50% { opacity: 1; } 100% { opacity: 0.2; } }
+    .loading { animation: pulse 0.8s infinite; color: var(--glow); font-weight: bold; letter-spacing: 2px; }
+
+    .input-area { display: flex; padding: 20px; border-top: 1px solid rgba(255, 0, 60, 0.3); gap: 10px; }
+    
+    input { 
+        flex-grow: 1; background: transparent; border: 1px solid rgba(255, 0, 60, 0.5); 
+        color: white; padding: 14px; outline: none; border-radius: 2px;
+    }
+    
+    input:focus { border-color: var(--glow); box-shadow: 0 0 10px rgba(255, 0, 60, 0.4); }
+    
+    button { 
+        background: var(--glow); border: none; padding: 10px 30px; 
+        cursor: pointer; font-weight: bold; transition: 0.1s; border-radius: 2px;
+        color: #fff; text-transform: uppercase;
+    }
+    
+    button:hover { background: #fff; color: #ff003c; box-shadow: 0 0 20px #fff; }
+    .clear-btn { 
+        background: transparent; 
+        border: 1px solid var(--glow); 
+        color: var(--glow); 
+        padding: 10px 20px; 
+        cursor: pointer; 
+        font-weight: bold; 
+        border-radius: 4px; 
+        transition: 0.3s;
+    }
+    .clear-btn:hover { 
+        background: rgba(255, 255, 255, 0.1); 
+        box-shadow: 0 0 10px var(--glow);
+    }
+/* This class will handle the fade-out animation */
+    .fade-out {
+        opacity: 0;
+        transition: opacity 0.5s ease-out;
+    }
+</style>
+</head>
+<body>
+
+<div class="terminal">
+    <header>SKY</header>
+    <div id="chat-log">
+        <div class="msg sky">System Online. All local modules functional. Awaiting command, Sir.</div>
+    </div>
+        <form id="chat-form" class="input-area">
+        <input type="text" id="user-input" placeholder="Enter system command..." autocomplete="off">
+        <button type="button" class="clear-btn" onclick="clearChat()">RESET</button>
+        <button type="submit">EXECUTE</button>
+    </form>
+</div>
+
+<script>
+    const form = document.getElementById('chat-form');
+    const log = document.getElementById('chat-log');
+
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        const input = document.getElementById('user-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        // User message
+        log.innerHTML += `<div class="msg user">> ${text}</div>`;
+        input.value = '';
+        
+        // Loader
+        const loaderId = 'loader-' + Date.now();
+        log.innerHTML += `<div id="${loaderId}" class="msg sky loading">SKY is thinking...</div>`;
+        log.scrollTop = log.scrollHeight;
+
+        const formData = new FormData();
+        formData.append('message', text);
+
+        try {
+            const response = await fetch('/api/chat/', {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+            });
+            const data = await response.json();
+            
+            document.getElementById(loaderId).remove();
+            log.innerHTML += `<div class="msg sky"><b>SKY:</b> ${data.response}</div>`;
+        } catch (err) {
+            document.getElementById(loaderId).className = "msg sky";
+            document.getElementById(loaderId).style.color = "#ff4d4d";
+            document.getElementById(loaderId).innerHTML = "CRITICAL ERROR: Local link failure.";
+        }
+        log.scrollTop = log.scrollHeight;
+    };
+    function clearChat() {
+    const log = document.getElementById('chat-log');
+    
+    // 1. Add fade-out effect
+    log.classList.add('fade-out');
+    
+    // 2. Wait for animation to finish, then clear
+    setTimeout(() => {
+        log.innerHTML = '<div class="msg sky">System Reindexed. Memory cleared, Sir.</div>';
+        log.classList.remove('fade-out');
+    }, 500);
+    }
+</script>
+</body>
+</html>
