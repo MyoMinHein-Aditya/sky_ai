@@ -21,6 +21,17 @@ SKY is a highly responsive, terminal-style AI interface built with **Django** an
 
 ---
 
+## 👨‍💻 About the Developer
+Currently pursuing a technical curriculum with a focus on Python Full-Stack Development and local AI integration. SKY is a project born out of a desire to create a private, high-performance executive assistant that runs entirely on local hardware.
+
+## 📋 Commands & Usage
+- **Type a message:** Enter any prompt into the terminal and hit `EXECUTE`.
+- **RESET:** Clears the current session and re-initializes the system interface.
+- **Theme Shift:** (Developer Mode) Edit `:root` variables in `style.css` to toggle between Gold, Red, and Deep Sea modes.
+
+---
+*Created with focus and caffeine. System Status: Optimized.*
+
 ## 🚀 Installation & Setup
 
 ### 1. Prerequisites
