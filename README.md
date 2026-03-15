@@ -150,7 +150,7 @@ sky_project/
 
 ## 🎯 Built For
 
-This project was built for a **vibe-coding hackathon** — where the goal was to build something real, useful, and impressively fast.
+This project was built for **myself roadmap** — where the goal was to build something real, useful, and impressively fast.
 
 SKY went from zero to fully featured in one session:
 - ✅ Local LLM inference
