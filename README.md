@@ -8,7 +8,7 @@
 
 SKY is a personal AI chatbot powered by **Ollama's TinyDolphin** model — running 100% on your own device. No API keys. No monthly bills. No sending your data to a server in another country. Just you, your laptop, and an AI that actually remembers what you said.
 
-Built in **48 hours** for a hackathon. Shipped with more features than we planned. Zero regrets.
+Shipped with more features than I planned. Zero regrets.
 
 ---
 
