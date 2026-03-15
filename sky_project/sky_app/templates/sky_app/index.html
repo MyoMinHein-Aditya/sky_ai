@@ -1096,11 +1096,33 @@
         weekday: 'long', day: 'numeric', month: 'long'
     });
 
-    // Restore session
-    if (chatHistory.length > 0) {
-        hideWelcome();
-        chatHistory.forEach(m => appendBubble(m.role, m.content, false));
+    // Restore session from SERVER (works across all devices)
+    async function loadHistoryFromServer() {
+        try {
+            const res = await fetch('/api/history/');
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data.messages && data.messages.length > 0) {
+                hideWelcome();
+                // Sync into local chatHistory too
+                chatHistory = data.messages.map(m => ({ role: m.role, content: m.content }));
+                sessionStorage.setItem(sessionKey, JSON.stringify(chatHistory));
+                data.messages.forEach(m => appendBubble(m.role, m.content, false, m.timestamp));
+            } else if (chatHistory.length > 0) {
+                // Fallback to sessionStorage if server returns empty
+                hideWelcome();
+                chatHistory.forEach(m => appendBubble(m.role, m.content, false));
+            }
+        } catch {
+            // Fallback to sessionStorage if server unreachable
+            if (chatHistory.length > 0) {
+                hideWelcome();
+                chatHistory.forEach(m => appendBubble(m.role, m.content, false));
+            }
+        }
     }
+
+    loadHistoryFromServer();
 
     // Theme
     if (localStorage.getItem('sky_theme') === 'dark') {
@@ -1420,8 +1442,8 @@
         btn.disabled = false; ta.focus();
     }
 
-    function appendBubble(role, content, save) {
-        const t = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    function appendBubble(role, content, save, timestamp) {
+        const t = timestamp || new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
         const isUser = role === 'user';
         const row = document.createElement('div');
         row.className = `msg-row ${isUser ? 'user-row' : 'sky-row'}`;

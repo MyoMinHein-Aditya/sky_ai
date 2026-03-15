@@ -107,3 +107,24 @@ class SkyChatAPI(APIView):
         )
 
         return Response({"response": sky_reply})
+
+class SkyHistoryAPI(APIView):
+    """Returns full chat history for the current session — used to sync across devices"""
+
+    def get(self, request):
+        session_id = request.session.get('sky_session_id')
+        if not session_id:
+            return Response({'messages': []})
+        try:
+            session = ChatSession.objects.get(session_id=session_id)
+            messages = [
+                {
+                    'role': msg.role,
+                    'content': msg.content,
+                    'timestamp': msg.timestamp.strftime('%I:%M %p')
+                }
+                for msg in session.messages.all()
+            ]
+            return Response({'messages': messages})
+        except ChatSession.DoesNotExist:
+            return Response({'messages': []})
